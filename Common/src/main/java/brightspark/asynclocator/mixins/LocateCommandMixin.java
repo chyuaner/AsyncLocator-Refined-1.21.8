@@ -3,14 +3,11 @@ package brightspark.asynclocator.mixins;
 import brightspark.asynclocator.ALConstants;
 import brightspark.asynclocator.logic.LocateCommandLogic;
 import brightspark.asynclocator.platform.Services;
-import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.ResourceOrTagKeyArgument;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.commands.LocateCommand;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -38,11 +35,8 @@ public class LocateCommandMixin {
 	) {
 		if (!Services.CONFIG.locateCommandEnabled()) return;
 
-		CommandSource source = ((CommandSourceStackAccess) sourceStack).getSource();
-		if (source instanceof ServerPlayer || source instanceof MinecraftServer) {
 			ALConstants.logDebug("Intercepted LocateCommand#locate call");
 			LocateCommandLogic.locateAsync(sourceStack, structureResult, holderset);
-			cir.setReturnValue(0);
-		}
+			cir.setReturnValue(1);
 	}
 }

@@ -88,6 +88,22 @@ public class CommonLogic {
 		return tag.hasUUID(UUID_TRACKER) ? tag.getUUID(UUID_TRACKER) : null;
 	}
 
+	public static void clearPendingState(ItemStack mapStack) {
+		mapStack.remove(ALDataComponents.LOCATING);
+		
+	CustomData currentData = mapStack.get(DataComponents.CUSTOM_DATA);
+		if (currentData != null) {
+			CompoundTag newTag = currentData.copyTag();
+			newTag.remove(PENDING_MARKER);
+			newTag.remove(UUID_TRACKER);
+			if (newTag.isEmpty()) {
+				mapStack.remove(DataComponents.CUSTOM_DATA);
+			} else {
+				mapStack.set(DataComponents.CUSTOM_DATA, CustomData.of(newTag));
+			}
+		}
+	}
+	
 	// Updates the data of the map
 	public static void finalizeMap(
 		ItemStack mapStack,
@@ -119,7 +135,11 @@ public class CommonLogic {
 		
 		if (displayName != null) {
 			mapStack.set(DataComponents.ITEM_NAME, displayName);
+		} else {
+			mapStack.remove(DataComponents.ITEM_NAME);
 		}
+		
+	clearPendingState(mapStack);
 		
 		mapStack.remove(ALDataComponents.LOCATING);
 		

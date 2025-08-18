@@ -132,15 +132,14 @@ public abstract class ExplorationMapFunctionMixin {
 
 				if (foundPos != null) {
 					ALConstants.logInfo("Async location found for exploration map {}: {} -> Calling completion logic", destination.location(), foundPos);
-					CommonLogic.completeMapUpdate(pendingMapStack, serverLevel, foundPos, mapDecorationHolderOpt.get(), mapName);
+					CommonLogic.finalizeMap(pendingMapStack, serverLevel, foundPos, this.zoom, mapDecorationHolderOpt.get(), mapName);
 				} else {
 					ALConstants.logInfo("Async location not found for exploration map {} -> Invalidating map in inventory (if possible)", destination.location());
                     if (inventoryPos != null) {
                         Services.EXPLORATION_MAP_FUNCTION_LOGIC.invalidateMap(pendingMapStack, serverLevel, inventoryPos);
                     } else {
-                         ALConstants.logWarn("Cannot invalidate exploration map - LootContext lacks ORIGIN parameter.");
-                         pendingMapStack.remove(ALDataComponents.LOCATING);
-                         pendingMapStack.remove(DataComponents.ITEM_NAME);
+                        ALConstants.logWarn("Cannot invalidate exploration map - LootContext lacks ORIGIN parameter.");
+                        CommonLogic.clearPendingState(pendingMapStack);
                     }
 				}
 			});
