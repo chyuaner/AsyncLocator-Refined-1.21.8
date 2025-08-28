@@ -1,6 +1,6 @@
 plugins {
     id 'fabric-loom' version '1.11.5' apply(false)
-    id 'net.minecraftforge.gradle' version '6.0.43' apply(false)
+    id 'net.neoforged.moddev' version '2.0.107' apply(false)
     id 'org.spongepowered.gradle.vanilla' version '0.2.1-SNAPSHOT' apply(false)
     id("org.spongepowered.mixin") version "0.7.38" apply(false)
 }
@@ -56,7 +56,7 @@ subprojects {
 
     processResources {
         def propsProvider = providers.provider { project.properties }
-        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'mods.toml', '*.mixins.json']) {
+        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'neoforge.mods.toml', '*.mixins.json']) {
             expand(propsProvider.get())
         }
     }

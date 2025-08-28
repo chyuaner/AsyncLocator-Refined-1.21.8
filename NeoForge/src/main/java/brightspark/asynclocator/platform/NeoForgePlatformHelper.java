@@ -1,13 +1,14 @@
 package brightspark.asynclocator.platform;
 
 import brightspark.asynclocator.platform.services.PlatformHelper;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLLoader;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLLoader;
 
-public class ForgePlatformHelper implements PlatformHelper {
+public class NeoForgePlatformHelper implements PlatformHelper {
+
 	@Override
 	public String getPlatformName() {
-		return "Forge";
+		return "NeoForge";
 	}
 
 	@Override

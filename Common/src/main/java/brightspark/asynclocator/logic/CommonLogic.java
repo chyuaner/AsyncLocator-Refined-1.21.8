@@ -154,6 +154,7 @@ public class CommonLogic {
 	/**
 	 * Broadcasts slot changes to all players that have the chest container open.
 	 * Won't do anything if the BlockEntity isn't an instance of {@link ChestBlockEntity}.
+	 * Keep for backward compatibility (new method: broadcastContainerChanges)
 	 */
 	public static void broadcastChestChanges(ServerLevel level, BlockEntity be) {
 		if (!(be instanceof ChestBlockEntity chestBE))
@@ -162,6 +163,17 @@ public class CommonLogic {
 		level.players().forEach(player -> {
 			AbstractContainerMenu container = player.containerMenu;
 			if (container instanceof ChestMenu chestMenu && chestMenu.getContainer() == chestBE) {
+				chestMenu.broadcastChanges();
+			}
+		});
+	}
+
+	// This works with any container
+	public static void broadcastContainerChanges(ServerLevel level, BlockEntity be, net.minecraft.world.Container container) {
+		level.players().forEach(player -> {
+			AbstractContainerMenu menu = player.containerMenu;
+			// ChestMenu is used by both chests and barrels
+			if (menu instanceof ChestMenu chestMenu && chestMenu.getContainer() == container) {
 				chestMenu.broadcastChanges();
 			}
 		});

@@ -10,11 +10,7 @@ import net.minecraft.util.Unit;
 import java.util.function.UnaryOperator;
 
 public class ALDataComponents {
-    // Simple component acting as a boolean flag using Unit (no value needed)
-    public static final DataComponentType<Unit> LOCATING = register("locating", builder -> builder
-        .persistent(Codec.unit(Unit.INSTANCE))
-        .networkSynchronized(StreamCodec.unit(Unit.INSTANCE))
-    );
+    public static DataComponentType<Unit> LOCATING;
 
     private static <T> DataComponentType<T> register(String name, UnaryOperator<DataComponentType.Builder<T>> operator) {
         DataComponentType.Builder<T> builder = DataComponentType.builder();
@@ -26,7 +22,22 @@ public class ALDataComponents {
         );
     }
 
+	//Direct registration for Fabric
     public static void init() {
-        ALConstants.logInfo("Registered data components");
+		if (LOCATING != null) return;
+
+		LOCATING = register("locating", builder -> builder
+			.persistent(Codec.unit(Unit.INSTANCE))
+			.networkSynchronized(StreamCodec.unit(Unit.INSTANCE))
+		);
+
+		ALConstants.logInfo("Registered data components (Fabric)");
     }
-} 
+
+	// Registration for NeoForge
+	public static void setLocating(DataComponentType<Unit> locating) {
+		LOCATING = locating;
+		ALConstants.logInfo("Registered data components (NeoForge)");
+	}
+
+}
