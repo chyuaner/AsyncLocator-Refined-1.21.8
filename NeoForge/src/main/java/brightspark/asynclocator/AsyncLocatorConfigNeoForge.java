@@ -5,6 +5,9 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 public class AsyncLocatorConfigNeoForge {
 
+	private static final int DEFAULT_THREADS = 1;
+	private static final int MAX_THREADS = 64;
+
 	public static ModConfigSpec SPEC;
 	public static ConfigValue<Integer> LOCATOR_THREADS;
 	public static ConfigValue<Boolean> REMOVE_OFFER;
@@ -28,7 +31,21 @@ public class AsyncLocatorConfigNeoForge {
 					"The default of 1 should be suitable for most users.",
 					"This value must not exceed 64."
 					)
-					.defineInRange("asyncLocatorThreads", 1, 1, 64); // Practically in no case will you need the maximum amount
+					.define("asyncLocatorThreads", DEFAULT_THREADS, value -> {
+
+						if (!(value instanceof Integer)) {
+							return false;
+						}
+						Integer intValue = (Integer) value;
+				
+						// Check bounds
+						if (intValue < 1 || intValue > MAX_THREADS) {
+							return false;
+						}
+				
+						return true;
+					});
+			
 				REMOVE_OFFER = builder
 					.comment(
 						"When a merchant's treasure map offer ends up not finding a feature location,",
@@ -58,19 +75,13 @@ public class AsyncLocatorConfigNeoForge {
 
 	// Add validation method
 	public static void validateConfig() {
+		// This method can be used for additional runtime checks if needed
 		int threads = LOCATOR_THREADS.get();
-
-		if (threads == MAX_THREADS) {
-			ALConstants.logWarn(
-				"Thread count is at maximum ({}). If you entered a higher value, it will be reset to default.",
-				MAX_THREADS
-			);
-		}
-		
-		if (threads > MAX_THREADS || threads < 1) {
+		if (threads < 1 || threads > MAX_THREADS) {
+			// This shouldn't happen with the validator, but just in case
 			ALConstants.logError(
 				"Invalid locatorThreads value ({}). Must be between 1-64. Resetting to default ({}).",
-				threads, DEFAULT_THREADS
+				threads
 			);
 			LOCATOR_THREADS.set(DEFAULT_THREADS);
 			LOCATOR_THREADS.save();

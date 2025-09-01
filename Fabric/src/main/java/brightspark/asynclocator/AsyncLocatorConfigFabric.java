@@ -9,6 +9,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class AsyncLocatorConfigFabric {
+
+	private static final int DEFAULT_THREADS = 1;
+	private static final int MAX_THREADS = 64;
+
 	@Config(
 		value = "asyncLocatorThreads",
 		comment = """
@@ -19,8 +23,8 @@ public class AsyncLocatorConfigFabric {
 			The default of 1 should be suitable for most users.
 			This value must not exceed 64.
 			""",
-		min = 1,
-		max = 64 // Practically in no case will you need the maximum amount
+		min = DEFAULT_THREADS,
+		max = MAX_THREADS // Practically in no case will you need the maximum amount
 	)
 	public static int LOCATOR_THREADS = 1;
 	@Config(
@@ -63,6 +67,17 @@ public class AsyncLocatorConfigFabric {
 
 	private AsyncLocatorConfigFabric() {}
 
+	//Helper method
+	private static void resetToDefaults() {
+		LOCATOR_THREADS = DEFAULT_THREADS;
+		REMOVE_OFFER = false;
+		FeatureToggles.DOLPHIN_TREASURE_ENABLED = true;
+		FeatureToggles.EYE_OF_ENDER_ENABLED = true;
+		FeatureToggles.EXPLORATION_MAP_ENABLED = true;
+		FeatureToggles.LOCATE_COMMAND_ENABLED = true;
+		FeatureToggles.VILLAGER_TRADE_ENABLED = true;
+	}
+
 	public static void init() {
 		Path configFile = FabricLoader.getInstance().getConfigDir().resolve(ALConstants.MOD_ID + ".properties");
 
@@ -70,29 +85,49 @@ public class AsyncLocatorConfigFabric {
 			ALConstants.logInfo("Config file found");
 			try {
 				SparkConfig.read(configFile, AsyncLocatorConfigFabric.class);
+
+				// in case of manual edits
+				if (LOCATOR_THREADS > MAX_THREADS || LOCATOR_THREADS < 1) {
+					ALConstants.logError(
+							"Invalid locatorThreads value ({}). Must be between 1-64. Resetting to default ({}).",
+							LOCATOR_THREADS, DEFAULT_THREADS
+					);
+					LOCATOR_THREADS = DEFAULT_THREADS;
+
+					try {
+						SparkConfig.write(configFile, AsyncLocatorConfigFabric.class);
+						ALConstants.logInfo("Config file rewritten with default threads value");
+					} catch (IOException | IllegalAccessException writeError) {
+						ALConstants.logError(writeError, "Failed to rewrite config file");
+					}
+				}
+
 			} catch (IllegalStateException e) {
 				// SparkConfig throws this when value is out of range
-				if (e.getMessage().contains("greater than the maximum") || 
-					e.getMessage().contains("less than the minimum")) {
+				if (e.getMessage().contains("greater than the maximum") ||
+						e.getMessage().contains("less than the minimum")) {
 					ALConstants.logError(
-						"Invalid config value detected: {}. Resetting to defaults and recreating config.",
-						e.getMessage()
+							"Invalid config value detected: {}. Resetting to defaults and recreating config.",
+							e.getMessage()
 					);
-					
-					LOCATOR_THREADS = 1;
-					
+
+					LOCATOR_THREADS = DEFAULT_THREADS;
+
+
 					// Rewrite config with defaults
 					try {
 						SparkConfig.write(configFile, AsyncLocatorConfigFabric.class);
-						ALConstants.logInfo("Config file rewrite with default threads value");
+						ALConstants.logInfo("Config file rewrite with default values");
 					} catch (IOException | IllegalAccessException writeError) {
 						ALConstants.logError(writeError, "Failed to rewrite cpnfig file");
 					}
 				} else {
 					ALConstants.logError(e, "Failed to read config file, using defaults");
+					resetToDefaults();
 				}
 			} catch (IOException | IllegalAccessException e) {
-				ALConstants.logError(e, "Failed to read config file {}", configFile);
+				ALConstants.logError(e, "Failed to read config file {}, using defaults", configFile);
+				resetToDefaults();
 			}
 		} else {
 			ALConstants.logInfo("No config file found - creating it");
