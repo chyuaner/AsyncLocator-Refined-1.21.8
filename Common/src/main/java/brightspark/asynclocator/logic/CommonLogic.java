@@ -44,7 +44,7 @@ public class CommonLogic {
 		ItemStack stack = new ItemStack(Items.FILLED_MAP);
 		stack.set(DataComponents.ITEM_NAME, Component.translatable(MAP_HOVER_NAME_KEY));
 		CompoundTag customData = new CompoundTag();
-		customData.putUUID(UUID_TRACKER, UUID.randomUUID());
+		customData.putString(UUID_TRACKER, UUID.randomUUID().toString());
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(customData));
 		return stack;
 	}
@@ -83,7 +83,13 @@ public class CommonLogic {
 		CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
 		if (customData == null) return null;
 		CompoundTag tag = customData.copyTag();
-		return tag.hasUUID(UUID_TRACKER) ? tag.getUUID(UUID_TRACKER) : null;
+		String raw = tag.getString(UUID_TRACKER).orElse("");
+		if (raw.isEmpty()) return null;
+		try {
+			return java.util.UUID.fromString(raw);
+		} catch (IllegalArgumentException ex) {
+			return null;
+		}
 	}
 
 	public static void clearPendingState(ItemStack mapStack) {
