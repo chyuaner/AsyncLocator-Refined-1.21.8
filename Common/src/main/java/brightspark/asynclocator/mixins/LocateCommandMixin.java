@@ -44,7 +44,10 @@ public class LocateCommandMixin {
 
 	@Inject(
 		method = "locateBiome",
-		at = @At("HEAD"),
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/server/level/ServerLevel;findClosestBiome3d(Ljava/util/function/Predicate;Lnet/minecraft/core/BlockPos;III)Lcom/mojang/datafixers/util/Pair;"
+		),
 		cancellable = true
 	)
 	private static void findBiomeAsync(
