@@ -18,7 +18,7 @@ public class EnderEyeItemLogic {
 	private EnderEyeItemLogic() {}
 
 	public static void locateAsync(ServerLevel level, Player player, EyeOfEnder eyeOfEnder, EnderEyeItem enderEyeItem) {
-		final long timeoutSeconds = 20L;
+		final long timeoutSeconds = 60L;
 
 		/*
 		 * Locate with ChunkGenerator using HolderSet(StructureTags.EYE_OF_ENDER_LOCATED) for better compatibility

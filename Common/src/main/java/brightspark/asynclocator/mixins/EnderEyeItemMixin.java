@@ -3,8 +3,11 @@ package brightspark.asynclocator.mixins;
 import brightspark.asynclocator.ALConstants;
 import brightspark.asynclocator.logic.EnderEyeItemLogic;
 import brightspark.asynclocator.platform.Services;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.advancements.critereon.UsedEnderEyeTrigger;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stat;
@@ -16,6 +19,7 @@ import net.minecraft.world.entity.projectile.EyeOfEnder;
 import net.minecraft.world.item.EnderEyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.Mixin;
@@ -53,6 +57,29 @@ public class EnderEyeItemMixin {
 			return serverlevel.findNearestMapStructure(pStructureTag, pPos, pRadius, pSkipExistingChunks);
 		}
 	}
+
+	@Redirect(
+		method = "use",
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/world/level/chunk/ChunkGenerator;findNearestMapStructure(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/HolderSet;Lnet/minecraft/core/BlockPos;IZ)Lcom/mojang/datafixers/util/Pair;"
+		)
+	)
+	public Pair<BlockPos, Holder<Structure>> generatorFindNearestMapFeature(
+		ChunkGenerator generator,
+		ServerLevel level,
+		HolderSet<Structure> set,
+		BlockPos origin,
+		int radius,
+		boolean skipExisting
+	) {
+		if (Services.CONFIG.eyeOfEnderEnabled()) {
+			ALConstants.logDebug("Intercepted EnderEyeItem#use ChunkGenerator.findNearestMapStructure");
+			return null;
+		}
+		return generator.findNearestMapStructure(level, set, origin, radius, skipExisting);
+	}
+
 
 	// Start the async locate task here so we have the eye of ender entity for context
 	@Inject(
@@ -99,7 +126,7 @@ public class EnderEyeItemMixin {
 			target = "Lnet/minecraft/advancements/critereon/UsedEnderEyeTrigger;trigger(Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/core/BlockPos;)V"
 		)
 	)
-	public void triggerUsedEnderEyeCriteria(UsedEnderEyeTrigger trigger, ServerPlayer player, BlockPos pos) {
+	private void triggerUsedEnderEyeCriteria(UsedEnderEyeTrigger trigger, ServerPlayer player, BlockPos pos) {
 		if (!Services.CONFIG.eyeOfEnderEnabled())
 			trigger.trigger(player, pos);
 		// Else do nothing - we'll do this later if a location is found
