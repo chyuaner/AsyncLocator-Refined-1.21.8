@@ -4,7 +4,6 @@ import brightspark.asynclocator.ALConstants;
 import brightspark.asynclocator.AsyncLocator;
 import brightspark.asynclocator.mixins.MerchantOfferAccess;
 import brightspark.asynclocator.platform.Services;
-import brightspark.asynclocator.ALDataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -32,7 +31,8 @@ public class MerchantLogic {
 
 	public static void invalidateMap(AbstractVillager merchant, ItemStack mapStack) {
 		mapStack.set(DataComponents.ITEM_NAME, Component.translatable("item.minecraft.map"));
-		mapStack.remove(brightspark.asynclocator.ALDataComponents.LOCATING);
+		mapStack.set(DataComponents.ITEM_NAME, Component.translatable("item.minecraft.map"));
+		CommonLogic.clearPendingState(mapStack);
 
 		merchant.getOffers()
 			.stream()

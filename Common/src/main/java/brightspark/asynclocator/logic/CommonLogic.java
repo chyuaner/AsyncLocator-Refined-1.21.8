@@ -1,7 +1,6 @@
 package brightspark.asynclocator.logic;
 
 import brightspark.asynclocator.ALConstants;
-import brightspark.asynclocator.ALDataComponents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -46,8 +45,8 @@ public class CommonLogic {
 		stack.set(DataComponents.ITEM_NAME, Component.translatable(MAP_HOVER_NAME_KEY));
 		CompoundTag customData = new CompoundTag();
 		customData.putString(UUID_TRACKER, UUID.randomUUID().toString());
+		customData.putBoolean(PENDING_MARKER, true);
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(customData));
-		stack.set(ALDataComponents.LOCATING, Unit.INSTANCE);
 		return stack;
 	}
 
@@ -64,7 +63,10 @@ public class CommonLogic {
 		level.setMapData(newMapId, mapData);
 		
 		stack.set(DataComponents.ITEM_NAME, Component.translatable(MAP_HOVER_NAME_KEY));
-		stack.set(ALDataComponents.LOCATING, Unit.INSTANCE);
+		
+		CompoundTag customData = new CompoundTag();
+		customData.putBoolean(PENDING_MARKER, true);
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(customData));
 		
 		return stack;
 	}
@@ -74,7 +76,6 @@ public class CommonLogic {
 		if (!stack.is(Items.FILLED_MAP)) {
 			return false;
 		}
-		if (stack.has(ALDataComponents.LOCATING)) return true;
 		CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
 		if (customData == null) return false;
 		return customData.contains(PENDING_MARKER) || customData.contains(UUID_TRACKER);
@@ -95,9 +96,7 @@ public class CommonLogic {
 	}
 
 	public static void clearPendingState(ItemStack mapStack) {
-		mapStack.remove(ALDataComponents.LOCATING);
-		
-	CustomData currentData = mapStack.get(DataComponents.CUSTOM_DATA);
+		CustomData currentData = mapStack.get(DataComponents.CUSTOM_DATA);
 		if (currentData != null) {
 			CompoundTag newTag = currentData.copyTag();
 			newTag.remove(PENDING_MARKER);
